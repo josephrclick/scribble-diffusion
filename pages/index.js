@@ -1,15 +1,12 @@
 import Canvas from "components/canvas";
 import PromptForm from "components/prompt-form";
 import Head from "next/head";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Predictions from "components/predictions";
 import Error from "components/error";
-import Welcome from "components/welcome";
 import uploadFile from "lib/upload";
-import naughtyWords from "naughty-words";
 import Script from "next/script";
 import seeds from "lib/seeds";
-import pkg from "../package.json";
 import sleep from "lib/sleep";
 
 const HOST = process.env.VERCEL_URL
@@ -25,7 +22,6 @@ export default function Home() {
   const [seed] = useState(seeds[Math.floor(Math.random() * seeds.length)]);
   const [initialPrompt] = useState(seed.prompt);
   const [scribble, setScribble] = useState(null);
-  const [welcomeOpen, setWelcomeOpen] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -33,11 +29,7 @@ export default function Home() {
     // track submissions so we can show a spinner while waiting for the next prediction to be created
     setSubmissionCount(submissionCount + 1);
 
-    const prompt = e.target.prompt.value
-      .split(/\s+/)
-      .map((word) => (naughtyWords.en.includes(word) ? "something" : word))
-      .join(" ");
-
+    const prompt = e.target.prompt.value;
     setError(null);
     setIsProcessing(true);
 
@@ -47,7 +39,7 @@ export default function Home() {
       prompt,
       image: fileUrl,
       structure: "scribble",
-      replicate_api_token: localStorage.getItem("replicate_api_token"),
+      replicate_api_token: process.env.REPLICATE_API_TOKEN,
     };
 
     const response = await fetch("/api/predictions", {
@@ -76,9 +68,7 @@ export default function Home() {
       await sleep(500);
       const response = await fetch("/api/predictions/" + prediction.id, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem(
-            "replicate_api_token"
-          )}`,
+          Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
         },
       });
       prediction = await response.json();
@@ -95,76 +85,48 @@ export default function Home() {
     setIsProcessing(false);
   };
 
-  const handleTokenSubmit = (e) => {
-    e.preventDefault();
-    console.log(e.target[0].value);
-    localStorage.setItem("replicate_api_token", e.target[0].value);
-    setWelcomeOpen(false);
-  };
-
-  useEffect(() => {
-    const replicateApiToken = localStorage.getItem("replicate_api_token");
-
-    if (replicateApiToken) {
-      setWelcomeOpen(false);
-    } else {
-      setWelcomeOpen(true);
-    }
-  }, []);
-
   return (
     <>
-      <Head>
-        <title>{pkg.appName}</title>
-        <meta name="description" content={pkg.appMetaDescription} />
-        <meta property="og:title" content={pkg.appName} />
-        <meta property="og:description" content={pkg.appMetaDescription} />
-        <meta
-          property="og:image"
-          content={`${HOST}/og-b7xwc4g4wrdrtneilxnbngzvti.jpg`}
-        />
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-      </Head>
-      <main className="container max-w-[1024px] mx-auto p-5 ">
-        {welcomeOpen ? (
-          <Welcome handleTokenSubmit={handleTokenSubmit} />
-        ) : (
-          <div className="container max-w-[512px] mx-auto">
-            <hgroup>
-              <h1 className="text-center text-5xl font-bold m-4">
-                {pkg.appName}
-              </h1>
-              <p className="text-center text-xl opacity-60 m-4">
-                {pkg.appSubtitle}
+        <div className="min-h-screen bg-gray-100">
+          <Head>
+            <title>Scribble App</title>
+            <meta name="description" content="Draw something and get an AI-generated image" />
+            <link rel="icon" href="/favicon.ico" />
+          </Head>
+    
+          <main className="container max-w-[768px] mx-auto px-4 py-8">
+            <div className="text-center mb-8">
+              <h1 className="text-2xl font-bold mb-2">Scribble App</h1>
+              <p className="text-gray-600">
+                Draw something and submit a brief description. Wait a bit and get an AI-generated image based on your sketch.
               </p>
-            </hgroup>
-
-            <Canvas
-              startingPaths={seed.paths}
-              onScribble={setScribble}
-              scribbleExists={scribbleExists}
-              setScribbleExists={setScribbleExists}
-            />
-
-            <PromptForm
-              initialPrompt={initialPrompt}
-              onSubmit={handleSubmit}
+            </div>
+    
+            <div className="bg-white rounded-lg shadow p-6 mb-8">
+              <Canvas
+          startingPaths={seed.paths}
+                onScribble={setScribble}
+                scribbleExists={scribbleExists}
+                setScribbleExists={setScribbleExists}
+              />
+    
+              <PromptForm
+          initialPrompt={initialPrompt}
+                onSubmit={handleSubmit}
+                isProcessing={isProcessing}
+                scribbleExists={scribbleExists}
+              />
+    
+              <Error error={error} />
+            </div>
+    
+            <Predictions
+              predictions={predictions}
               isProcessing={isProcessing}
-              scribbleExists={scribbleExists}
+              submissionCount={submissionCount}
             />
-
-            <Error error={error} />
-          </div>
-        )}
-
-        <Predictions
-          predictions={predictions}
-          isProcessing={isProcessing}
-          submissionCount={submissionCount}
-        />
-      </main>
-
+          </main>
+        </div>
       <Script src="https://js.bytescale.com/upload-js-full/v1" />
     </>
   );
