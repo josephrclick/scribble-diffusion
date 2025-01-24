@@ -3,23 +3,23 @@ import Replicate from "replicate";
 import packageData from "../../../package.json";
 
 export default async function handler(req) {
-  const authHeader = req.headers.get("authorization");
-  const replicate_api_token = authHeader.split(" ")[1]; // Assuming a "Bearer" token
-
   if (req.method !== 'GET') {
     return NextResponse.json({ error: 'Method not allowed.' }, { status: 405 });
   }
 
   try {
-    const { id } = req.query;
+    const predictionId = req.nextUrl.searchParams.get("id");
+    
+    if (!predictionId) {
+      return NextResponse.json({ error: "Missing prediction ID" }, { status: 400 });
+    }
 
     const replicate = new Replicate({
-      auth: replicate_api_token,
+      auth: process.env.REPLICATE_API_TOKEN,
       userAgent: `${packageData.name}/${packageData.version}`,
     });
 
-    //const predictionId = req.nextUrl.searchParams.get("id");
-    const prediction = await replicate.predictions.get(id);
+    const prediction = await replicate.predictions.get(predictionId);
 
     return NextResponse.json(prediction);
   } catch (error) {
