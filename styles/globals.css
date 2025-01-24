@@ -6,7 +6,6 @@ input {
   @apply border;
   @apply border-solid;
   @apply border-gray-300;
-  /* @apply rounded-md; */
   @apply px-4;
   @apply py-2;
 }
@@ -51,4 +50,13 @@ input {
 .prose a {
   @apply text-gray-600;
   @apply underline;
+}
+
+@media screen and (max-width: 768px) {
+  .react-sketch-canvas {
+    touch-action: none;
+    max-width: 100vw;
+    width: 100vw !important;
+    height: 100vw !important;
+  }
 }

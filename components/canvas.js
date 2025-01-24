@@ -42,7 +42,7 @@ export default function Canvas({
       loadScaledPaths();
       setInitialLoadComplete(true);
     }
-  }, [canvasSize]);
+  }, [canvasSize, initialLoadComplete, loadScaledPaths]);
 
   const scalePoint = (point) => {
     const scale = canvasSize.width / ORIGINAL_CANVAS_SIZE;
