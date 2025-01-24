@@ -21,16 +21,16 @@ const WEBHOOK_HOST = process.env.VERCEL_URL
     try {
       const input = await req.json();
   
-      const { replicate_api_token, ...restInput } = input;
+      const { prompt, image, structure } = input;
   
       const replicate = new Replicate({
-        auth: replicate_api_token,
+        auth: process.env.REPLICATE_API_TOKEN,
         userAgent: `${packageData.name}/${packageData.version}`,
       });
   
       const prediction = await replicate.predictions.create({
         version: "435061a1b5a4c1e26740464bf786efdfa9cb3a3ac488595a2de23e143fdb0117",
-        input: restInput,
+        input: { prompt, image, structure },
         webhook: `${WEBHOOK_HOST}/api/replicate-webhook`,
         webhook_events_filter: ["start", "completed"],
       });
