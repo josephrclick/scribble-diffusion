@@ -13,36 +13,37 @@ const WEBHOOK_HOST = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
   : process.env.NGROK_HOST;
 
-export default async function handler(req) {
-  if (req.method !== 'POST') {
-    return NextResponse.json({ error: 'Method not allowed.'}, { status: 405 });
+  export default async function handler(req) {
+    if (req.method !== 'POST') {
+      return NextResponse.json({ error: 'Method not allowed.'}, { status: 405 });
+    }
+    
+    try {
+      const input = await req.json();
+  
+      const { replicate_api_token, ...restInput } = input;
+  
+      const replicate = new Replicate({
+        auth: replicate_api_token,
+        userAgent: `${packageData.name}/${packageData.version}`,
+      });
+  
+      const prediction = await replicate.predictions.create({
+        version: "435061a1b5a4c1e26740464bf786efdfa9cb3a3ac488595a2de23e143fdb0117",
+        input: restInput,
+        webhook: `${WEBHOOK_HOST}/api/replicate-webhook`,
+        webhook_events_filter: ["start", "completed"],
+      });
+  
+      if (prediction?.error) {
+        return NextResponse.json({ detail: prediction.error }, { status: 500 });
+      }
+  
+      return NextResponse.json(prediction, { status: 201 });
+    } catch (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
   }
-  const input = await req.json();
-
-  // Destructure to extract replicate_api_token and keep the rest of the properties in input
-  const { replicate_api_token, ...restInput } = input;
-
-  const replicate = new Replicate({
-    auth: replicate_api_token,
-    userAgent: `${packageData.name}/${packageData.version}`,
-  });
-
-
-  // https://replicate.com/jagilley/controlnet-scribble/versions
-  const prediction = await replicate.predictions.create({
-    version:
-      "435061a1b5a4c1e26740464bf786efdfa9cb3a3ac488595a2de23e143fdb0117",
-    input,
-    webhook: `${WEBHOOK_HOST}/api/replicate-webhook`,
-    webhook_events_filter: ["start", "completed"],
-  });
-
-  if (prediction?.error) {
-    return NextResponse.json({ detail: prediction.error }, { status: 500 });
-  }
-
-  return NextResponse.json(prediction, { status: 201 });
-}
 
 export const config = {
   runtime: "edge",
