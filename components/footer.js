@@ -5,20 +5,11 @@ import Image from "next/image";
 export default function Footer() {
   return (
     <footer className="mt-20">
-      <div className="p-4">
-      <div className="flex items-center">
-        <Image
-              src="/jrc.jpg"
-              alt="The man, the myth, the legend."
-              width={64}
-              height={64}
-              className="w-16 h-16 mr-4"
-          />
-          <div>
-        <p className="mb-4 text-sm">
+      <div className="p-8">
+        <p className="text-center mb-2 text-sm">
           Another proof of concept built with LLMs.
         </p> 
-        <p className="text-sm"> 
+        <p className="text-center text-sm mb-4"> 
           Based on Scribble Diffusion, an open-source project from{" "}
           <Link
             className="underline"
@@ -29,8 +20,6 @@ export default function Footer() {
           </Link>
           .
         </p>
-      </div>
-      </div>
       </div>
     </footer>
   );

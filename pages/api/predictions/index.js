@@ -14,10 +14,13 @@ const WEBHOOK_HOST = process.env.VERCEL_URL
   : process.env.NGROK_HOST;
 
 export default async function handler(req) {
-  const input = await getObjectFromRequestBodyStream(req.body);
+  if (req.method !== 'POST') {
+    return NextResponse.json({ error: 'Method not allowed.'}, { status: 405 });
+  }
+  const input = await req.json();
 
   // Destructure to extract replicate_api_token and keep the rest of the properties in input
-  //const { replicate_api_token, ...restInput } = input;
+  const { replicate_api_token, ...restInput } = input;
 
   const replicate = new Replicate({
     auth: replicate_api_token,
