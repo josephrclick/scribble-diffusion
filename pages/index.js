@@ -40,6 +40,7 @@ export default function Home() {
       image: fileUrl,
       structure: "scribble",
       replicate_api_token: process.env.REPLICATE_API_TOKEN,
+      version: "795433b19458d0f4fa172a7ccf93178d2adb1cb8ab2ad6c8fdc33fdbcd49f477"
     };
 
     const response = await fetch("/api/predictions", {

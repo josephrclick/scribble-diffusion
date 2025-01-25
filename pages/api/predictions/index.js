@@ -29,7 +29,7 @@ const WEBHOOK_HOST = process.env.VERCEL_URL
       });
   
       const prediction = await replicate.predictions.create({
-        version: "435061a1b5a4c1e26740464bf786efdfa9cb3a3ac488595a2de23e143fdb0117",
+        version: "795433b19458d0f4fa172a7ccf93178d2adb1cb8ab2ad6c8fdc33fdbcd49f477",
         input: { prompt, image, structure },
         webhook: `${WEBHOOK_HOST}/api/replicate-webhook`,
         webhook_events_filter: ["start", "completed"],
